@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Number Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Small devices (phones) */
+    @media (max-width: 640px) {
+      .number-card {
+        width: 120px;
+        height: 120px;
+      }
+
+      .number-text {
+        font-size: 1.5rem;
+      }
+
+      .button-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .pair-row {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+
+    /* Tablets */
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .number-card {
+        width: 140px;
+        height: 140px;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen flex items-center justify-center">
+
+<div class="text-center space-y-8">
+
+  <button onclick="generateBoth()" 
+    class="bg-slate-800 text-white px-8 py-2 rounded-xl shadow hover:bg-slate-900">
+    Generate Both
+  </button>
+
+  <div class="flex gap-10 justify-center pair-row">
+
+    <div class="bg-white shadow-md rounded-2xl w-40 h-40 flex flex-col items-center justify-center number-card">
+      <h2 class="text-lg font-semibold">Girls</h2>
+      <span id="girlsNumber" class="text-3xl font-bold mt-2 transition-all number-text">--</span>
+    </div>
+
+    <div class="bg-white shadow-md rounded-2xl w-40 h-40 flex flex-col items-center justify-center number-card">
+      <h2 class="text-lg font-semibold">Boys</h2>
+      <span id="boysNumber" class="text-3xl font-bold mt-2 transition-all number-text">--</span>
+    </div>
+
+  </div>
+
+  <div class="flex gap-6 justify-center button-row">
+    <button onclick="generateGirls()" 
+      class="bg-pink-500 text-white px-6 py-2 rounded-xl shadow hover:bg-pink-600">
+      Generate Girl
+    </button>
+
+    <button onclick="generateBoys()" 
+      class="bg-blue-500 text-white px-6 py-2 rounded-xl shadow hover:bg-blue-600">
+      Generate Boy
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const girlsPool = Array.from({ length: 30 }, (_, i) =>
+    String(i + 1).padStart(2, '0')
+  );
+
+  const boysPool = [
+    ...Array.from({ length: 31 }, (_, i) => String(i + 31)),
+    "L01", "L02", "L03", "L04"
+  ];
+
+  let lastGirl = null;
+  let lastBoy = null;
+
+  const invalidPairs = new Set([
+    "04-45",
+    "08-54",
+    "04-34"
+  ]);
+
+  function randomFrom(pool, lastValue) {
+    if (pool.length === 1) return pool[0];
+
+    let value;
+    do {
+      value = pool[Math.floor(Math.random() * pool.length)];
+    } while (value === lastValue);
+
+    return value;
+  }
+
+  function isInvalidPair(girl, boy) {
+    return invalidPairs.has(`${girl}-${boy}`);
+  }
+
+  function flash(el) {
+    el.classList.add("scale-125");
+    setTimeout(() => el.classList.remove("scale-125"), 150);
+  }
+
+  function animateNumber(elementId, finalValue, pool) {
+    const el = document.getElementById(elementId);
+    let counter = 0;
+
+    const interval = setInterval(() => {
+      el.innerText = pool[Math.floor(Math.random() * pool.length)];
+      counter++;
+
+      if (counter > 12) {
+        clearInterval(interval);
+        el.innerText = finalValue;
+        flash(el);
+      }
+    }, 40);
+  }
+
+  function generateGirls() {
+    const girl = randomFrom(girlsPool, lastGirl);
+    lastGirl = girl;
+    animateNumber("girlsNumber", girl, girlsPool);
+  }
+
+  function generateBoys() {
+    const boy = randomFrom(boysPool, lastBoy);
+    lastBoy = boy;
+    animateNumber("boysNumber", boy, boysPool);
+  }
+
+  function generateBoth() {
+    let girl, boy;
+    let attempts = 0;
+    const MAX_ATTEMPTS = 100;
+
+    do {
+      girl = randomFrom(girlsPool, lastGirl);
+      boy = randomFrom(boysPool, lastBoy);
+      attempts++;
+
+      if (attempts > MAX_ATTEMPTS) {
+        alert("Too many restricted pairs. Unable to generate.");
+        return;
+      }
+
+    } while (isInvalidPair(girl, boy));
+
+    lastGirl = girl;
+    lastBoy = boy;
+
+    animateNumber("girlsNumber", girl, girlsPool);
+    animateNumber("boysNumber", boy, boysPool);
+  }
+</script>
+
+</body>
+</html>
